@@ -1,7 +1,13 @@
-import Timer from "./Timer";
+// import Timer from "./Timer";
+import TimerComponent from "./TimerComponent";
 
 function App() {
-  return <Timer />;
+  return (
+    <>
+      {/* <Timer /> */}
+      <TimerComponent />
+    </>
+  );
 }
 
 export default App;
