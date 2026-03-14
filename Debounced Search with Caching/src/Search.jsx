@@ -1,6 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
-import useFetch from "../../Fetching Data from API/src/useFetch";
-import { useRef } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
+import useFetch from "./useFetch";
 import useDebounce from "./useDebounce";
 
 const Search = () => {
