@@ -6,7 +6,7 @@ const DigitalClock1 = ()=>{
     useEffect(()=>{
         const tick = ()=>{
             setTime(new Date());
-            const now =new Date();
+            const now =new Date(); 
             const delay=1000 -(now%1000);
             setTimeout(tick,delay);
 
@@ -21,3 +21,5 @@ const DigitalClock1 = ()=>{
         </div>
     )
 }
+
+export default DigitalClock1;
