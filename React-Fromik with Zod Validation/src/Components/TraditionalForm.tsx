@@ -1,6 +1,7 @@
 import { useState } from "react"
 import type { FormData } from "../types/index"
 import DatePicker from "react-datepicker";
+import simulatedApi from "../api/api";
 
 
 const SimpleForm: React.FC =()=>{
@@ -21,13 +22,99 @@ const SimpleForm: React.FC =()=>{
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
 
-    function handleChange(event: ChangeEvent<HTMLInputElement, HTMLInputElement>): void {
-        throw new Error("Function not implemented.");
+ const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+) => {
+  const { name, value } = e.target;
+
+  if (name.includes(".")) {
+    const [parent, child] = name.split(".") as [keyof FormData, string];
+
+    setFormData((prev) => ({
+      ...prev,
+      [parent]: {
+        ...(prev[parent] as any),
+        [child]: value,
+      },
+    }));
+  } else {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+};
+
+    const handleHobbyChange = (index:number, e:React.ChangeEvent<HTMLInputElement>)=>{
+        const {value} = e.target;
+        const hobbies =[...formData.hobbies];
+        hobbies[index]["name"] = value;
+        setFormData({
+            ...formData,
+            hobbies,
+        });
     }
 
-    function handleSubmit(event: SubmitEvent<HTMLFormElement>): void {
-        throw new Error("Function not implemented.");
+    const addHobby = ()=>{
+        setFormData({
+            ...formData,
+            hobbies: [...formData.hobbies, {name: ""}],
+        })
     }
+
+    const removeHobby = (index:number)=>{
+        const hobbies = [...formData.hobbies];
+        hobbies.splice(index,1);
+        setFormData({
+            ...formData,
+            hobbies,
+        });
+    };
+
+
+   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setErrors({});
+    const newErrors: any = {};
+
+    if (!formData.firstName) newErrors.firstName = "First Name is required";
+    if (!formData.lastName) newErrors.lastName = "Last Name is required";
+    if (!formData.email.match(/^\S+@\S+$/i))
+      newErrors.email = "Invalid email address";
+    if (formData.age < 18) newErrors.age = "You must be at least 18 years old";
+    if (!formData.gender) newErrors.gender = "Gender is required";
+    if (!formData.address.city)
+      newErrors.address = { city: "City is required" };
+    if (!formData.address.state)
+      newErrors.address = { ...newErrors.address, state: "State is required" };
+
+    formData.hobbies.forEach((hobby, index) => {
+      if (!hobby.name) {
+        if (!newErrors.hobbies) newErrors.hobbies = [];
+        newErrors.hobbies[index] = { name: "Hobby name is required" };
+      }
+    });
+
+    if (formData.subscribe && !formData.refferal)
+      newErrors.referral = "Referral source is required if subscribing";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await simulatedApi(formData);
+      console.log("Success:", response);
+    } catch (error: any) {
+      console.error("Error:", error);
+      setErrors({ root: error.message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
     return (
 <form onSubmit={handleSubmit} style={{display: "flex", flexDirection:"column", gap:"5"}}>
@@ -78,12 +165,14 @@ const SimpleForm: React.FC =()=>{
 
     <div>
         <label>Address:</label>
-        <input name="city" value={formData.address.city}></input>
+        <input name="address.city" value={formData.address.city} placeholder="City" onChange={handleChange
+      
+    }></input>
         {errors.address?.city && (
             <p style={{color:"orangered"}}>{errors.address?.city}</p>
         )}
     
-        <input name="state" value={formData.address.state}></input>
+        <input name="address.state" value={formData.address.state} onChange={handleChange}></input>
         {errors.address?.state && (
             <p style={{color:"orangered"}}>{errors.address.state}</p>
         )}
@@ -91,24 +180,26 @@ const SimpleForm: React.FC =()=>{
 
     <div>
         <label>Start Date:</label>
-        <DatePicker selected={formData.startDate}/>
+        <DatePicker selected={formData.startDate} onChange={(date:Date | null)=>
+            setFormData({...formData, startDate : date || new Date()})
+        }/>
     </div>
 
     <div>
         <label>Hobbies:</label>
        {formData?.hobbies.map((hobby, index)=>(
         <div key={index}>
-            <input type="text" name="name" value={hobby.name} placeholder="Hobby Name" onChange={}></input>
+            <input type="text" name="name" value={hobby.name} placeholder="Hobby Name" onChange={(e)=>handleHobbyChange(index,e)}></input>
             {errors.hobbies?.[index]?.name && (
                 <p style={{color: "orangered"}}>{errors.hobbies?.[index].name}</p>
             )}
             {formData.hobbies.length > 1 && (
-                <button type="button" onClick={()=>}>Remove Hobby</button>
+                <button type="button" onClick={()=>removeHobby(index)}>Remove Hobby</button>
             )}
         </div>
        ))}
 
-       <button type="button">Add Hobby</button>
+       <button type="button" onClick={addHobby}>Add Hobby</button>
         
     </div>
 
@@ -130,9 +221,9 @@ const SimpleForm: React.FC =()=>{
             <label>
                 Referral Source
             </label>
-            <input name="referral" value={formData.refferal} onChange={} placeholder="How did you hear about us?"></input>
+            <input name="refferal" value={formData.refferal} onChange={handleChange} placeholder="How did you hear about us?"></input>
             {errors.refferal && (
-                <p style={{color:"orangered"}}>{errors.referral}</p>
+                <p style={{color:"orangered"}}>{errors.refferal}</p>
             )}
 
         </div>
@@ -146,3 +237,5 @@ const SimpleForm: React.FC =()=>{
     )
 
 }
+
+export default SimpleForm;
