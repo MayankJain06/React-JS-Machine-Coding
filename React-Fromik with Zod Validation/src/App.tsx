@@ -1,12 +1,15 @@
-
 import './App.css'
-
+import FormikForm from './Components/formik';
+//import SimpleForm from './Components/TraditionalForm';
 
 function App() {
  
 
   return (
-    <h1>React Formik with Zod validation!</h1>
+    <>
+    {/* <SimpleForm /> */}
+    <FormikForm/>
+    </>
   )
 }
 
